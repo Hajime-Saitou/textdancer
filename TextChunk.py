@@ -1,4 +1,4 @@
-# abgatelle
+# bagatelle
 # https://github.com/Hajime-Saitou/bagatelle
 #
 # Copyright (c) 2026 Hajime Saito
@@ -6,7 +6,7 @@
 import re
 import os
 
-class LoadableTextChunks(list[str]):
+class TextChunk(list[str]):
     def __init__(self, lines:list[str]=[]):
         super().__init__(lines)
 
@@ -21,9 +21,9 @@ class LoadableTextChunks(list[str]):
         with open(filename, "r", encoding=encoding) as f:
             self.extend(f.read().splitlines())
 
-class SearchableTextChunks(LoadableTextChunks):
-    def __init__(self, lines:list[str]=[]):
-        super().__init__(lines)
+    def saveToFile(self, filename:str, encoding:str="utf-8"):
+        with open(filename, "w", encoding=encoding) as f:
+            f.write("\n".join(self))
 
     def forwardSearch(self, keywords:list) -> int:
         for index, line in enumerate(self):
@@ -42,17 +42,16 @@ class SearchableTextChunks(LoadableTextChunks):
     def matches(self, line:str, keywords:list):
         return any(re.match(keyword, line) for keyword in keywords)
 
-class PickableTextChunks(SearchableTextChunks):
-    def __init__(self, lines:list[str]=[]):
-        super().__init__(lines)
-
     def pickFrom(self, startKeywords:list):
         startIndex = self.forwardSearch(startKeywords)
-        return PickableTextChunks(self[startIndex:] if startIndex != -1 else [])
+        return TextChunk(self[startIndex:] if startIndex != -1 else [])
 
     def pickTo(self, endKeywords:list):
         endIndex:int = self.forwardSearch(endKeywords)
-        return PickableTextChunks(self[:endIndex + 1 if endIndex != -1 else len(self)])
+        return TextChunk(self[:endIndex + 1 if endIndex != -1 else len(self)])
     
     def pick(self, startKeywords:list, endKeywords:list):
-        return PickableTextChunks(self.pickFrom(startKeywords).pickTo(endKeywords))
+        return TextChunk(self.pickFrom(startKeywords).pickTo(endKeywords))
+
+    def filter(self, keywords:list):
+        return TextChunk([line for line in self if self.matches(line, keywords)])
