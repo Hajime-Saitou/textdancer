@@ -5,10 +5,24 @@
 # MIT License
 
 class RangeCursor:
-    def __init__(self, minPosition:int, maxPosition:int):
-        self.position = minPosition
+    def __init__(self, minPosition:int, maxPosition:int, position:int=None):
+        if minPosition > maxPosition:
+            raise ValueError(f"minPosition {minPosition} cannot be greater than maxPosition {maxPosition}")
+        
+        self.position = position if position is not None else minPosition
         self.minPosition = minPosition
         self.maxPosition = maxPosition
+
+        if self.isOutOfBounds():
+            raise ValueError(f"currentPosition {currentPosition} is out of bounds (minPosition: {minPosition}, maxPosition: {maxPosition})")
+
+    def __iadd__(self, value):
+        self.position += value
+        return self
+    
+    def __isub__(self, value):
+        self.position -= value
+        return self
 
     def current(self) -> int:
         return self.position
@@ -34,12 +48,19 @@ class RangeCursor:
         self.position = self.minPosition
 
     def clone(self):
-        return RangeCursor(self.minPosition, self.maxPosition)
+        return RangeCursor(self.minPosition, self.maxPosition, self.position)
 
 class SubscriptCursor(RangeCursor):
-    def __init__(self, size:int):
-        super().__init__(0, size - 1)
+    def __init__(self, size:int, position:int=None):
+        if size < 1:
+            size = 1
+
+        super().__init__(0, size - 1, position)
         self.size = size
 
     def clone(self):
-        return SubscriptCursor(self.size)
+        return SubscriptCursor(self.size, self.position)
+
+    def updateSize(self, size:int):
+        self.size = size
+        self.maxPosition = size - 1
