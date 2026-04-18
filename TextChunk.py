@@ -5,12 +5,12 @@
 # MIT License
 import re
 import os
-from Cursor import Cursor
+from Cursor import SubscriptCursor
 
 class TextChunk(list[str]):
     def __init__(self, lines:list[str]=[]):
         super().__init__(lines)
-        self.cursor = Cursor
+        self.cursor = SubscriptCursor(len(lines))
         self.updateCursorSize()
 
     def loadFromFile(self, filename:str, encoding:str="utf-8"):
@@ -70,15 +70,25 @@ class TextChunk(list[str]):
         self.cursor.size = len(self)
 
     def fetchNext(self) -> str:
-        return self[self.cursor.next()]
-    
+        if not self.cursor.hasNext():
+            raise StopIteration("Next line is not available.")
+
+        text = self.fetchCurrent()
+        self.cursor.next()
+        return text
+
     def fetchPrevious(self) -> str:
-        return self[self.cursor.previous()]
-    
+        if not self.cursor.hasPrevious():
+            raise StopIteration("Previous line is not available.")
+
+        text = self.fetchCurrent()
+        self.cursor.previous()
+        return text
+
     def fetchCurrent(self) -> str:
         return self[self.cursor.current()]
     
     def pickRange(self, startPosition:int=None, endPosition:int=None):
         startPosition = startPosition if startPosition is not None else self.cursor.current()
         endPosition = endPosition if endPosition is not None else len(self)
-        return TextChunk(self[startPosition, endPosition])
+        return TextChunk(self[startPosition:endPosition])

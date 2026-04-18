@@ -4,10 +4,11 @@
 # Copyright (c) 2026 Hajime Saito
 # MIT License
 
-class Cursor:
-    def __init__(self, size:int):
-        self.position = 0
-        self.size = 0
+class RangeCursor:
+    def __init__(self, minPosition:int, maxPosition:int):
+        self.position = minPosition
+        self.minPosition = minPosition
+        self.maxPosition = maxPosition
 
     def current(self) -> int:
         return self.position
@@ -21,7 +22,15 @@ class Cursor:
         return self.current()
 
     def hasNext(self) -> bool:
-        return self.position < self.size
+        return self.position <= self.maxPosition
 
     def hasPrevious(self) -> bool:
-        return self.position > 0
+        return self.position > self.minPosition
+
+    def isValidPosition(self) -> bool:
+        return self.hasNext() and self.hasPrevious()
+
+class SubscriptCursor(RangeCursor):
+    def __init__(self, size:int):
+        super().__init__(0, size - 1)
+        self.size = size
