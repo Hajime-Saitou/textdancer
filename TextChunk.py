@@ -49,7 +49,6 @@ class TextChunk(list[str]):
 
     def searchForward(self, keywords:list) -> int:
         cursor = self.cursor.clone()
-        print(f"Searching forward from position: {cursor.current(), self.cursor.position}")
         while cursor.hasNext():
             line = self[cursor.current()]
             if self.matches(line, keywords):
@@ -76,7 +75,6 @@ class TextChunk(list[str]):
         startPosition = startPosition + 1 if searchFromNextLine and startPosition != -1 else startPosition
         picked = TextChunk(self[startPosition:] if startPosition != -1 else [])
         self.cursor.position += len(picked)
-        print(f"new cursor position: {self.cursor.current()}")
         return picked
 
     def pickTo(self, endKeywords:list, pickToSearchedLine:bool=True):
@@ -85,7 +83,6 @@ class TextChunk(list[str]):
         endPosition = endPosition if endPosition != -1 else len(self)
         picked = TextChunk(self[self.cursor.current():endPosition])
         self.cursor.position += len(picked)
-        print(f"new cursor position: {self.cursor.current()}")
         return picked
 
     def pickRange(self, startPosition:int=None, endPosition:int=None):
@@ -123,18 +120,3 @@ class TextChunk(list[str]):
         text = self.fetchCurrent()
         self.cursor.previous()
         return text
-
-if __name__ == "__main__":
-    chunk = TextChunk()
-    chunk.append("10")
-    chunk.append("20")
-    chunk.append("30")
-    chunk.append("40")
-    chunk.append("50")
-    chunk.append("60")
-    
-    while chunk.cursor.hasNext():
-        print(f"currentPosition: {chunk.cursor.current()}, line: {chunk.fetchCurrent()}")
-        picked = chunk.pickTo(["20", "40", "60"], pickToSearchedLine=True)
-        if picked:
-            print(f"picked: {picked}\n")
