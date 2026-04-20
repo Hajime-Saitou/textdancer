@@ -83,9 +83,9 @@ class TextChunk(list[str]):
         self.cursor.position += len(picked)
         return picked
 
-    def pickTo(self, endKeywords:list, pickToSearchedLine:bool=False, skipHeaderSearch:bool=False):
+    def pickTo(self, endKeywords:list, pickToSearchLine:bool=False, skipHeaderSearch:bool=False):
         endPosition = self.searchForward(endKeywords, skipHeaderSearch)
-        endPosition = endPosition + 1 if pickToSearchedLine and endPosition != -1 else endPosition
+        endPosition = endPosition + 1 if pickToSearchLine and endPosition != -1 else endPosition
         endPosition = endPosition if endPosition != -1 else len(self)
         picked = TextChunk(self[self.cursor.current():endPosition])
         self.cursor.position += len(picked)
