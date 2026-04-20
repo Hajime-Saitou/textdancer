@@ -1,5 +1,5 @@
-# bagatelle
-# https://github.com/Hajime-Saitou/bagatelle
+# textdancer
+# https://github.com/Hajime-Saitou/textdancer
 #
 # Copyright (c) 2026 Hajime Saito
 # MIT License
