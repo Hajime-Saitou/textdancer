@@ -47,9 +47,9 @@ class TextChunk(list[str]):
         with open(filename, "w", encoding=encoding) as f:
             f.write("\n".join(self))
 
-    def searchForward(self, keywords:list, skipHeaderSearch:bool=False) -> int:
+    def searchForward(self, keywords:list, skipCurrentLineSearch:bool=False) -> int:
         cursor = self.cursor.clone()
-        if skipHeaderSearch:
+        if skipCurrentLineSearch:
             cursor.next()
 
         while cursor.hasNext():
@@ -60,9 +60,9 @@ class TextChunk(list[str]):
 
         return -1
 
-    def searchBackward(self, keywords:list, skipHeaderSearch:bool=False) -> int:
+    def searchBackward(self, keywords:list, skipCurrentLineSearch:bool=False) -> int:
         cursor = self.cursor.clone()
-        if skipHeaderSearch:
+        if skipCurrentLineSearch:
             cursor.previous()
 
         while cursor.hasPrevious():
@@ -76,19 +76,62 @@ class TextChunk(list[str]):
     def matches(self, line:str, keywords:list):
         return any(re.match(keyword, line) for keyword in keywords)
 
-    def pickFrom(self, startKeywords:list, skipHeaderSearch:bool=False):
-        startPosition = self.searchForward(startKeywords, skipHeaderSearch)
-        startPosition = startPosition + 1 if skipHeaderSearch and startPosition != -1 else startPosition
-        picked = TextChunk(self[startPosition:] if startPosition != -1 else [])
+    def pickFrom(self, startKeywords:list, pickToSearchLine:bool=False, skipCurrentLineSearch:bool=False):
+        startPosition = self.searchForward(startKeywords, skipCurrentLineSearch)
+        if startPosition == -1:
+            self.cursor.bottom()
+            return TextChunk([])
+
+        if not pickToSearchLine:
+            startPosition += 1
+
+        picked = TextChunk(self[startPosition:])
         self.cursor.position += len(picked)
         return picked
 
-    def pickTo(self, endKeywords:list, pickToSearchLine:bool=False, skipHeaderSearch:bool=False):
-        endPosition = self.searchForward(endKeywords, skipHeaderSearch)
-        endPosition = endPosition + 1 if pickToSearchLine and endPosition != -1 else endPosition
-        endPosition = endPosition if endPosition != -1 else len(self)
+    def pickTo(self, endKeywords:list, pickToSearchLine:bool=False, skipCurrentLineSearch:bool=False):
+        endPosition = self.searchForward(endKeywords, skipCurrentLineSearch)
+        if endPosition == -1:
+            currentPosition = self.cursor.current()
+            self.cursor.bottom()
+            return TextChunk(self[currentPosition:self.cursor.current()])
+
+        if skipCurrentLineSearch and self.cursor.current() < len(self) - 1:
+            self.cursor.next()
+
+        if pickToSearchLine:
+            endPosition += 1
+
         picked = TextChunk(self[self.cursor.current():endPosition])
         self.cursor.position += len(picked)
+        return picked
+    
+    def pickbackFrom(self, startKeywords:list, pickToSearchLine:bool=False, skipCurrentLineSearch:bool=False):
+        startPosition = self.searchBackward(startKeywords, skipCurrentLineSearch)
+        if startPosition == -1:
+            self.cursor.top()
+            return TextChunk(self[:self.cursor.current() + 1])
+        
+        if not pickToSearchLine and startPosition < len(self) - 1:
+            startPosition += 1
+
+        picked = TextChunk(self[startPosition:self.cursor.current() + 1])
+        self.cursor.position -= len(picked)
+        return picked
+    
+    def pickbackTo(self, endKeywords:list, pickToSearchLine:bool=False, skipCurrentLineSearch:bool=False):
+        currentPosition = self.cursor.current()
+
+        startPosition = self.searchBackward(endKeywords, skipCurrentLineSearch)
+        if startPosition == -1:
+            self.cursor.top()
+            return TextChunk(self.toList()[:currentPosition + 1])
+
+        if not pickToSearchLine:
+            startPosition += 1
+
+        picked = TextChunk(self[startPosition:currentPosition + 1])
+        self.cursor.position -= len(picked)
         return picked
 
     def pickRange(self, startPosition:int=None, endPosition:int=None):
