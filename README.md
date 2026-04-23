@@ -2,7 +2,7 @@
 textdancerはテキスト操作を扱いやすくするためのモジュールです。
 
 # インストール方法
-pipモジュールを利用してインストールします。
+pipを利用してインストールします。
 
 ```
 pip install textdancer
@@ -22,6 +22,7 @@ min～maxの値を指すカーソルを定義します。
 
 ### SubscriptCursor
 配列の添字を扱うためのカーソルです。RangeCursorをラップしたものです。
+0～len(variable)-1
 
 ## TextChunk
 テキストファイルをチャンクとして扱うtextdancerのメインクラスです。
@@ -68,7 +69,7 @@ chunk = TextChunk([
 ])
 
 while chunk.cursor.hasNext():
-    picked = chunk.pickTo(["^brief.*$"], skipHeaderSearch=True)
+    picked = chunk.pickTo(["^brief.*$"], skipCurrentLineSearch=True)
     if picked:
         print(f"picked: {picked}")
 ```
@@ -80,8 +81,8 @@ picked: ['brief 2', '  detail 2-1', '  detail 2-2']
 ```
 
 テキストの構成として、いくつかの明細の後に合計を示すものがあります。
-そのような場合は次のように書くと、全行を走査しながら必要なサブセットを得られます。
-skipHeaderSearchパラメーターの代わりにpickToSearchLineパラメーターが利用されている点に注意してください。
+このようなデータ構造の場合は、次のように書けば全行を走査しながら必要なサブセットを得られます。
+skipCurrentLineSearchパラメーターの代わりにpickToSearchLineパラメーターが利用されている点に注意してください。
 
 ```
 chunk = TextChunk([
